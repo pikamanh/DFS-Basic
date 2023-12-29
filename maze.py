@@ -1,4 +1,5 @@
 import sys
+from PIL import Image, ImageDraw
 
 class Node:
     def __init__(self, state, parent, action):
@@ -50,7 +51,7 @@ class Maze:
 
     def solve(self):
         stack = Stack()
-        explored = set()
+        self.explored = set()
         path = []
         self.numPath = 0
 
@@ -65,18 +66,15 @@ class Maze:
                     path.append(curr_node.state)
                     curr_node = curr_node.parent
                 path.reverse()
-                return path
+                return path, self.explored
             
-            explored.add(curr_node.state)
+            self.explored.add(curr_node.state)
             self.numPath += 1
             
             for action, (row, col) in self.action(*curr_node.state).items():
-                if 0 <= row < self.height and 0 <= col < self.width and "#" not in self.src[row][col] and (row, col) not in explored:
+                if 0 <= row < self.height and 0 <= col < self.width and "#" not in self.src[row][col] and (row, col) not in self.explored:
                     next_node = Node((row, col), curr_node, action)
                     stack.add(next_node)
-                    
-
-        return Node
     
     def stored(self):
         maze = []
@@ -89,7 +87,7 @@ class Maze:
                     rows+= ("B")
                 elif col == "#":
                     rows+= ("█")
-                elif col == " " and (i, j) in self.solve():
+                elif col == " " and (i, j) in self.solve()[0]:
                     rows+= ("*")
                 else:
                     rows+= " "
@@ -98,10 +96,55 @@ class Maze:
         return maze
     
     def print(self):
-        for i in self.stored():
-            print(i)
+        for line in self.stored():
+            print(line)
+
+    def output_image(self, maze, show_result = None, show_explored = None):
+        cell_size = 50
+        cell_borders = 2
+
+        img = Image.new(
+            "RGBA",
+            (self.width * cell_size, self.height * cell_size),
+            "black"
+        )
+        draw = ImageDraw.Draw(img)
+
+        for i, row in enumerate(maze):
+            for j, col in enumerate(row):
+                x1 = j * cell_size + cell_borders
+                y1 = i * cell_size + cell_borders
+                x2 = (j + 1) * cell_size - cell_borders
+                y2 = (i + 1) * cell_size - cell_borders
+
+                if (i, j) == self.start:
+                    #Yellow
+                    fill = (250, 238, 2)
+                elif (i, j) == self.end:
+                    #Blue
+                    fill = (66, 99, 245)
+                elif col == "█":
+                    #Black
+                    fill = (5, 5, 5)
+                elif (i, j) in self.solve()[0] and show_result:
+                    #Green
+                    fill = (19, 250, 2)
+                elif (i, j) in self.solve()[1] and show_explored:
+                    #Red
+                    fill = (252, 3, 3)
+                else:
+                    #White
+                    fill = (255, 255, 255)
+
+                draw.rectangle([(x1, y1), (x2, y2)], fill=fill)
+
+        img.save("maze.png")
 
 m = Maze()
-
 print(m.print())
-print(m.numPath)
+m.solve()
+print("Number of distance has gone: ", m.numPath)
+m.output_image(m.stored())
+
+#How to run code?
+    #python maze.py [file maze txt]
