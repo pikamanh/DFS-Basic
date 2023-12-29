@@ -106,14 +106,14 @@ class Maze:
         img = Image.new(
             "RGBA",
             (self.width * cell_size, self.height * cell_size),
-            "black"
+            "grey"
         )
         draw = ImageDraw.Draw(img)
 
         for i, row in enumerate(maze):
             for j, col in enumerate(row):
-                x1 = j * cell_size + cell_borders
-                y1 = i * cell_size + cell_borders
+                x1 = j * cell_size + cell_borders - 0.5
+                y1 = i * cell_size + cell_borders - 0.5
                 x2 = (j + 1) * cell_size - cell_borders
                 y2 = (i + 1) * cell_size - cell_borders
 
@@ -139,12 +139,12 @@ class Maze:
                 draw.rectangle([(x1, y1), (x2, y2)], fill=fill)
 
         img.save("maze.png")
+        img.show()
 
 m = Maze()
 print(m.print())
-m.solve()
-print("Number of distance has gone: ", m.numPath)
-m.output_image(m.stored())
+m.output_image(m.stored(), True, True)
+print("Number of distance had gone: ", m.numPath)
 
 #How to run code?
     #python maze.py [file maze txt]
